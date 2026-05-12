@@ -28,14 +28,18 @@ jobs:
 
       - name: دانلود ویدیو
         run: |
+          URL="${{ github.event.inputs.youtube_url }}"
+          echo "در حال دانلود ویدیو: $URL"
+          
           yt-dlp \
             -f "best[height<=720]/best" \
             --merge-output-format mp4 \
             --no-playlist \
             --retries 5 \
-            --sleep-interval 5 \
-            --sleep-requests 2 \
-            --extractor-args "youtube:player_client=web,ios,android"
+            --sleep-interval 3 \
+            --sleep-requests 1.5 \
+            -o "video_%(title)s_%(id)s.mp4" \
+            "$URL"
 
       - name: آماده‌سازی نام فایل
         id: filename
