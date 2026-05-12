@@ -53,8 +53,4 @@ jobs:
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ github.event.inputs.chat_id }} \
             -d reply_to_message_id=${{ github.event.inputs.message_id }} \
-            -d text="✅ دانلود با موفقیت انجام شد!
-
-📄 فایل: ${{ steps.filename.outputs.filename }}
-
-🔗 فایل آماده شده و به Artifact اضافه شد."
+            -d text="✅ دانلود با موفقیت انجام شد!📄 فایل: ${{ steps.filename.outputs.filename }}🔗 فایل به صورت Artifact آماده شد."
