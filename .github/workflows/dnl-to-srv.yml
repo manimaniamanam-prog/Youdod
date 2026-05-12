@@ -32,9 +32,10 @@ jobs:
             -f "best[height<=720]/best" \
             --merge-output-format mp4 \
             --no-playlist \
-            --retries 3 \
-            -o "video_%(title)s_%(id)s.mp4" \
-            "${{ github.event.inputs.youtube_url }}"
+            --retries 5 \
+            --sleep-interval 5 \
+            --sleep-requests 2 \
+            --extractor-args "youtube:player_client=web,ios,android"
 
       - name: آماده‌سازی نام فایل
         id: filename
