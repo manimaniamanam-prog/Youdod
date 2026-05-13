@@ -21,32 +21,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: نصب yt-dlp و ffmpeg
+      - name: نصب yt-dlp
         run: |
           sudo apt-get update
           sudo apt-get install -y yt-dlp ffmpeg
 
-      - name: دانلود ویدیو
+      - name: دانلود ویدیو با کوکی
         run: |
           URL="${{ github.event.inputs.youtube_url }}"
-          echo "در حال دانلود ویدیو: $URL"
+          echo "در حال دانلود: $URL"
           
           yt-dlp \
+            --cookies <(echo "${{ secrets.YBE_COOKS }}") \
             -f "best[height<=720]/best" \
             --merge-output-format mp4 \
             --no-playlist \
-            --retries 5 \
-            --sleep-interval 3 \
-            --sleep-requests 1.5 \
+            --retries 4 \
             -o "video_%(title)s_%(id)s.mp4" \
             "$URL"
 
       - name: آماده‌سازی نام فایل
         id: filename
-        run: |
-          echo "filename=$(ls *.mp4 | head -n 1)" >> $GITHUB_OUTPUT
+        run: echo "filename=$(ls *.mp4 | head -n 1)" >> $GITHUB_OUTPUT
 
-      - name: آپلود فایل به Artifact
+      - name: آپلود Artifact
         uses: actions/upload-artifact@v4
         with:
           name: downloaded-video
@@ -58,4 +56,4 @@ jobs:
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ github.event.inputs.chat_id }} \
             -d reply_to_message_id=${{ github.event.inputs.message_id }} \
-            -d text="✅ دانلود با موفقیت انجام شد!📄 فایل: ${{ steps.filename.outputs.filename }}🔗 فایل به صورت Artifact آماده شد."
+            -d text="✅ دانلود انجام شد!📄 نام فایل: ${{ steps.filename.outputs.filename }}"
