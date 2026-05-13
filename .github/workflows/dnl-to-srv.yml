@@ -1,49 +1,31 @@
-name: تست دانلود یوتیوب
+name: تست دانلود پیشرفته
 
 on:
   workflow_dispatch:
     inputs:
       youtube_url:
-        description: 'لینک یوتیوب برای تست'
         required: true
 
 jobs:
-  test-download:
+  download:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: نصب yt-dlp و ffmpeg
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y yt-dlp ffmpeg
+      - name: Setup yt-dlp
+        uses: AnimMouse/setup-yt-dlp@v3
+        with:
+          aria2: true
 
-      - name: دانلود ویدیو (تست)
+      - name: دانلود
         run: |
-          URL="${{ github.event.inputs.youtube_url }}"
-          echo "🔄 در حال دانلود: $URL"
-          
           yt-dlp \
             --extractor-args "youtube:player_client=android,web" \
             -f "best[height<=720]/best" \
             --merge-output-format mp4 \
             --no-playlist \
             --retries 10 \
-            --sleep-interval 3 \
-            --sleep-requests 2 \
-            -o "test_video_%(id)s.mp4" \
-            "$URL"
-
-      - name: چک کردن نتیجه
-        run: |
-          ls -lh *.mp4 || echo "فایل mp4 پیدا نشد!"
-
-      - name: آپلود Artifact (اگر موفق بود)
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-downloaded-video
-          path: "*.mp4"
-          retention-days: 2
+            --sleep-interval 5 \
+            --sleep-requests 2.5 \
+            "${{ github.event.inputs.youtube_url }}"
