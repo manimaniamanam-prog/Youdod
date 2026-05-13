@@ -1,59 +1,49 @@
-name: دانلود یوتیوب و ذخیره فایل
+name: تست دانلود یوتیوب
 
 on:
   workflow_dispatch:
     inputs:
       youtube_url:
-        description: 'لینک ویدیو یوتیوب'
+        description: 'لینک یوتیوب برای تست'
         required: true
-      chat_id:
-        description: 'Chat ID تلگرام'
-        required: true
-      message_id:
-        description: 'Message ID تلگرام'
-        required: false
 
 jobs:
-  download:
+  test-download:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: نصب yt-dlp
+      - name: نصب yt-dlp و ffmpeg
         run: |
           sudo apt-get update
           sudo apt-get install -y yt-dlp ffmpeg
 
-      - name: دانلود ویدیو با کوکی
+      - name: دانلود ویدیو (تست)
         run: |
           URL="${{ github.event.inputs.youtube_url }}"
-          echo "در حال دانلود: $URL"
+          echo "🔄 در حال دانلود: $URL"
           
           yt-dlp \
-            --cookies <(echo "${{ secrets.YBE_COOKS }}") \
+            --extractor-args "youtube:player_client=android,web" \
             -f "best[height<=720]/best" \
             --merge-output-format mp4 \
             --no-playlist \
-            --retries 4 \
-            -o "video_%(title)s_%(id)s.mp4" \
+            --retries 10 \
+            --sleep-interval 3 \
+            --sleep-requests 2 \
+            -o "test_video_%(id)s.mp4" \
             "$URL"
 
-      - name: آماده‌سازی نام فایل
-        id: filename
-        run: echo "filename=$(ls *.mp4 | head -n 1)" >> $GITHUB_OUTPUT
+      - name: چک کردن نتیجه
+        run: |
+          ls -lh *.mp4 || echo "فایل mp4 پیدا نشد!"
 
-      - name: آپلود Artifact
+      - name: آپلود Artifact (اگر موفق بود)
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: downloaded-video
+          name: test-downloaded-video
           path: "*.mp4"
-          retention-days: 3
-
-      - name: اطلاع‌رسانی به کاربر
-        run: |
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/sendMessage" \
-            -d chat_id=${{ github.event.inputs.chat_id }} \
-            -d reply_to_message_id=${{ github.event.inputs.message_id }} \
-            -d text="✅ دانلود انجام شد!📄 نام فایل: ${{ steps.filename.outputs.filename }}"
+          retention-days: 2
