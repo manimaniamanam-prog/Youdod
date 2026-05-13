@@ -1,4 +1,4 @@
-name: تست دانلود پیشرفته
+name: تست نهایی دانلود یوتیوب
 
 on:
   workflow_dispatch:
@@ -13,19 +13,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup yt-dlp
+      - name: Setup yt-dlp + aria2
         uses: AnimMouse/setup-yt-dlp@v3
         with:
           aria2: true
 
-      - name: دانلود
+      - name: دانلود ویدیو
         run: |
           yt-dlp \
-            --extractor-args "youtube:player_client=android,web" \
+            --extractor-args "youtube:player_client=android,web,ios,web_embedded" \
             -f "best[height<=720]/best" \
             --merge-output-format mp4 \
             --no-playlist \
             --retries 10 \
-            --sleep-interval 5 \
-            --sleep-requests 2.5 \
+            --sleep-interval 4 \
+            --sleep-requests 2 \
             "${{ github.event.inputs.youtube_url }}"
